@@ -1,11 +1,13 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'language/style.css' %}">
-    <div>
-        <img src="{{ result.image.url }}" width="500" height="500">
-    </div>
-    <div>
-      예측 결과 : {{ result.result }}
-    </div>
-    <div>
-      정답  : {{ result.answer }}
-    </div>
+    {% for r in result %}
+      <div>
+          <img src="{{ r.image.url }}" width="500" height="500">
+      </div>
+      <div>
+        예측 결과 : {{ r.result }}
+      </div>
+      <div>
+        정답  : {{ r.answer }}
+      </div>
+    {% endfor %}

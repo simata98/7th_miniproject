@@ -7,61 +7,73 @@ import numpy as np
 import cv2
 import string
 from keras.models import load_model
-import os
-from pathlib import Path
-
 
 # from pybo.model import Result
 from .models import Result
 
 # Create your views here.
-
 logger = logging.getLogger('mylogger')
 
 def index(request):
     return render(request, 'language/index.html')
 
 def upload(request):
+    
     if request.method == 'POST' and request.FILES['files']:
-        #todo form에서 전송한 파일을 획득한다.
-        file = request.FILES['files']
-        # class names 준비
-        class_names = list(string.ascii_lowercase)
-        class_names = np.array(class_names)
-        mapping = {i:s for i, s in enumerate(class_names)}
+        #form에서 전송한 파일을 획득한다.
+        p = request.POST.getlist('answer')
+        f = request.FILES.getlist('files')
 
-        #todo 모델 로딩
-        model_path = os.path.join(Path(__file__).resolve().parent, "model/CNN_second.h5")
-        model = load_model(model_path)
-        
-        #todo history 저장을 위해 객체에 담아서 DB에 저장한다.
-        # 이때 파일시스템에 저장도 된다.
-        result = Result()
-        result.answer = request.POST.get('answer', '')
-        result.image = file
-        result.pub_date = timezone.datetime.now()
-        result.save()
-        
-        img = cv2.imread(result.image.path, cv2.IMREAD_GRAYSCALE)
-        img = cv2.resize(img, (28, 28))
-        img = img/255
-        img = img.reshape(-1, 28, 28, 1)
-        
-        img_pred = model.predict(img)
-        
-        #todo 예측 결과를 DB에 저장한다.
-        result.result = mapping[int(np.argmax(img_pred, axis=1))]
-        result.save()
+        result = []
+
+        for i in range(len(p)):
+            result.append(Result())
+            post = p[i]
+            file = f[i]
+
+            # logger.error('file', file)
+            # class names 준비
+            class_names = list(string.ascii_lowercase)
+            class_names = np.array(class_names)
+
+            # 모델 로딩
+            model_path = settings.MODEL_DIR +'/sign_model.h5'
+            model = load_model(model_path)
+
+            # history 저장을 위해 객체에 담아서 DB에 저장한다.
+            # 이때 파일시스템에 저장도 된다.
+            result[i].answer = post
+            result[i].image = file
+            result[i].pub_date = timezone.datetime.now()
+            result[i].save()
+
+            # 흑백으로 읽기
+            img = cv2.imread(result[i].image.path, cv2.IMREAD_GRAYSCALE)
+
+            # 크기 조정
+            img = cv2.resize(img, (28, 28))
+
+            # input shape 맞추기
+            test_sign = img.reshape(1, 28, 28, 1)
+
+            # 스케일링
+            test_sign = test_sign / 255.
+
+            # 예측 : 결국 이 결과를 얻기 위해 모든 것을 했다.
+            pred = model.predict(test_sign)
+            pred_1 = pred.argmax(axis=1)
+
+            #결과를 DB에 저장한다.
+            result[i].result = class_names[pred_1][0]
+            result[i].save()
 
         context = {
             'result': result,
         }
 
-
-    # http method의 GET은 처리하지 않는다. 사이트 테스트용으로 남겨둠.
+    # http method의 GET은 처리하지 않는다. 사이트 테스트용으로 남겨둠
     else:
         test = request.GET['test']
         logger.error(('Something went wrong!!',test))
 
     return render(request, 'language/result.html', context)    
-
