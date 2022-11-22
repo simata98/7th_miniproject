@@ -6,4 +6,5 @@ app_name = 'signlanguage'
 urlpatterns = [
     path('', views.index, name='index'),
     path('upload', views.upload, name='upload'),
+    path('add', views.add, name='add'),
 ]

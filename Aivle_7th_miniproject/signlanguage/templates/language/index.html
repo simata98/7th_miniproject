@@ -1,12 +1,37 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'language/style.css' %}">
-<form action="upload" method="post" enctype="multipart/form-data">
+<link rel="stylesheet" href="{% static 'language/style.css' %}?after" />
+
+<script>
+  var limit = 20;
+  var count = 0;
+
+  function additem() {
+    const obj = document.getElementById("upload_set");
+    const div = document.createElement("div");
+    div.innerHTML += obj.innerHTML;
+    div.appendChild(obj);
+    document.body.appendChild(div);
+  }
+</script>
+
+<div id="upload_set" class="flex-container column" style="display: none">
+  <form action="upload" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <fieldset>
-        <legend><h1>파일 업로드</h1></legend>
-        <input name="files" type="file" >
-       
+      <legend><h1>파일 업로드</h1></legend>
+      <input name="files" type="file" />
     </fieldset>
-    <div>정답 : <input name="answer" type="text"></div>
-    <div><input type="submit" value="업로드"></div>
-    </form>
+    <div>정답 : <input name="answer" type="text" /></div>
+    <div>
+      <input type="submit" style="background-color: #f08080" value="업로드" />
+    </div>
+  </form>
+</div>
+
+<body>
+  <form action="add" method="post" enctype="multipart/form-data">
+    <div>
+      <input type="button" value="추가" onclick="additem();" />
+    </div>
+  </form>
+</body>

@@ -11,14 +11,16 @@ import os
 from pathlib import Path
 
 
-# from pybo.model import Result
 from .models import Result
-
-# Create your views here.
+from .models import Image
 
 logger = logging.getLogger('mylogger')
 
 def index(request):
+    image = Image.objects.all()
+    image.delete()
+    result = Result.objects.all()
+    result.delete()
     return render(request, 'language/index.html')
 
 def upload(request):
@@ -31,7 +33,7 @@ def upload(request):
         mapping = {i:s for i, s in enumerate(class_names)}
 
         #todo 모델 로딩
-        model_path = os.path.join(Path(__file__).resolve().parent, "model/CNN_second.h5")
+        model_path = settings.MODEL_DIR + "/sign_model.h5"
         model = load_model(model_path)
         
         #todo history 저장을 위해 객체에 담아서 DB에 저장한다.
@@ -64,4 +66,7 @@ def upload(request):
         logger.error(('Something went wrong!!',test))
 
     return render(request, 'language/result.html', context)    
+
+def add(request):
+    pass
 
