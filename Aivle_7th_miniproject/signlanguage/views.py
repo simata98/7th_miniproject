@@ -9,7 +9,7 @@ import string
 from keras.models import load_model
 
 # from pybo.model import Result
-from .models import Result
+from .models import Result, AiModel
 
 # Create your views here.
 logger = logging.getLogger('mylogger')
@@ -37,7 +37,11 @@ def upload(request):
             class_names = np.array(class_names)
 
             # 모델 로딩
-            model_path = settings.MODEL_DIR +'/sign_model.h5'
+            AiModel.objects.all()
+            model_db = AiModel.objects.get(is_selected=True)
+            tmp = model_db.ai_file.name
+        
+            model_path = settings.MEDIA_ROOT + '/' + tmp
             model = load_model(model_path)
 
             # history 저장을 위해 객체에 담아서 DB에 저장한다.
@@ -45,6 +49,7 @@ def upload(request):
             result[i].answer = post
             result[i].image = file
             result[i].pub_date = timezone.datetime.now()
+            result[i].use_model = tmp[6:]
             result[i].save()
 
             # 흑백으로 읽기
