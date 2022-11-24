@@ -77,3 +77,4 @@ def upload(request):
         logger.error(('Something went wrong!!',test))
 
     return render(request, 'language/result.html', context)    
+
